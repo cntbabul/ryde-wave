@@ -10,11 +10,11 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import { useSignUp } from '@clerk/expo/legacy';
+import { useSignUp } from '@clerk/expo';
 import { Link, useRouter } from 'expo-router';
 
 export default function SignUpScreen() {
-  const { signUp, setActive, isLoaded: isSignUpLoaded } = useSignUp();
+  const { signUp } = useSignUp();
   const router = useRouter();
 
   const [email, setEmail] = useState('');
@@ -25,47 +25,66 @@ export default function SignUpScreen() {
   const [error, setError] = useState('');
 
   const handleSignUp = async () => {
-    if (!isSignUpLoaded) return;
+    if (!signUp) return;
     setLoading(true);
     setError('');
 
     try {
-      await signUp.create({
+      const { error: createError } = await signUp.create({
         emailAddress: email,
         password,
       });
 
+      if (createError) {
+        setError((createError as any).errors?.[0]?.message || createError.message || 'An error occurred during registration.');
+        return;
+      }
+
       // Send the verification email to the user
-      await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+      const { error: sendError } = await signUp.verifications.sendEmailCode();
+
+      if (sendError) {
+        setError((sendError as any).errors?.[0]?.message || sendError.message || 'Failed to send verification code.');
+        return;
+      }
 
       setPendingVerification(true);
     } catch (err: any) {
       console.error(err);
-      setError(err?.errors?.[0]?.message || 'An error occurred during registration.');
+      setError(err?.errors?.[0]?.message || err?.message || 'An error occurred during registration.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleVerify = async () => {
-    if (!isSignUpLoaded) return;
+    if (!signUp) return;
     setLoading(true);
     setError('');
 
     try {
-      const completeSignUp = await signUp.attemptEmailAddressVerification({
+      const { error: verifyError } = await signUp.verifications.verifyEmailCode({
         code,
       });
 
-      if (completeSignUp.status === 'complete') {
-        await setActive({ session: completeSignUp.createdSessionId });
-        router.replace('/(tabs)');
+      if (verifyError) {
+        setError((verifyError as any).errors?.[0]?.message || verifyError.message || 'Verification failed. Please check the code.');
+        return;
+      }
+
+      if (signUp.status === 'complete') {
+        const { error: finalizeError } = await signUp.finalize();
+        if (finalizeError) {
+          setError((finalizeError as any).errors?.[0]?.message || finalizeError.message || 'Failed to complete sign up.');
+        } else {
+          router.replace('/(tabs)');
+        }
       } else {
         setError('Verification is incomplete. Please try again.');
       }
     } catch (err: any) {
       console.error(err);
-      setError(err?.errors?.[0]?.message || 'Verification failed. Please check the code.');
+      setError(err?.errors?.[0]?.message || err?.message || 'Verification failed. Please check the code.');
     } finally {
       setLoading(false);
     }

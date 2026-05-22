@@ -12,7 +12,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { useSSO } from '@clerk/expo';
-import { useSignIn } from '@clerk/expo/legacy';
+import { useSignIn } from '@clerk/expo';
 import { Link, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
@@ -21,7 +21,7 @@ import * as Linking from 'expo-linking';
 WebBrowser.maybeCompleteAuthSession();
 
 export default function SignInScreen() {
-  const { signIn, setActive, isLoaded: isSignInLoaded } = useSignIn();
+  const { signIn } = useSignIn();
   const { startSSOFlow } = useSSO();
   const router = useRouter();
 
@@ -39,25 +39,34 @@ export default function SignInScreen() {
   }, []);
 
   const handleEmailSignIn = async () => {
-    if (!isSignInLoaded) return;
+    if (!signIn) return;
     setLoading(true);
     setError('');
 
     try {
-      const signInAttempt = await signIn.create({
+      const { error: createError } = await signIn.create({
         identifier: email,
         password,
       });
 
-      if (signInAttempt.status === 'complete') {
-        await setActive({ session: signInAttempt.createdSessionId });
-        router.replace('/(tabs)');
+      if (createError) {
+        setError((createError as any).errors?.[0]?.message || createError.message || 'An error occurred during sign in.');
+        return;
+      }
+
+      if (signIn.status === 'complete') {
+        const { error: finalizeError } = await signIn.finalize();
+        if (finalizeError) {
+          setError((finalizeError as any).errors?.[0]?.message || finalizeError.message || 'Failed to complete sign in.');
+        } else {
+          router.replace('/(tabs)');
+        }
       } else {
         setError('Verification or additional authentication steps are required.');
       }
     } catch (err: any) {
       console.error(err);
-      setError(err?.errors?.[0]?.message || 'An error occurred during sign in.');
+      setError(err?.errors?.[0]?.message || err?.message || 'An error occurred during sign in.');
     } finally {
       setLoading(false);
     }
