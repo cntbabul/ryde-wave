@@ -14,26 +14,33 @@ export const useUserSync = () => {
     }, [user]);
 
     const syncUser = async () => {
-        const { data } = await authSupabase
+        const { data, error } = await authSupabase
             .from("users")
             .select("clerk_id, is_admin")
             .eq("clerk_id", user!.id)
-            .single();
+            .maybeSingle();
+
+        if (error) {
+            console.error("Error checking user:", error);
+            return;
+        }
 
         if (data) {
             setIsAdmin(data.is_admin ?? false);
             return;
         }
 
+        const email = user?.emailAddresses?.[0]?.emailAddress || "";
+
         const { data: newUser } = await authSupabase
             .from("users")
-            .insert({
+            .upsert({
                 clerk_id: user!.id,
-                email: user!.emailAddresses[0].emailAddress,
+                email: email,
                 first_name: user!.firstName,
                 last_name: user!.lastName,
                 avatar_url: user!.imageUrl,
-            })
+            }, { onConflict: "clerk_id" })
             .select("is_admin")
             .single();
 

@@ -1,7 +1,14 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_KEY!;
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || "";
+const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_KEY || "";
+
+if (!supabaseUrl) {
+    throw new Error("Missing EXPO_PUBLIC_SUPABASE_URL environment variable. Please add it to your .env file.");
+}
+if (!supabaseAnonKey) {
+    throw new Error("Missing EXPO_PUBLIC_SUPABASE_KEY environment variable. Please add it to your .env file.");
+}
 
 // Plain anon client — used for public reads (properties list, etc.)
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);

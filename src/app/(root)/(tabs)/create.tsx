@@ -93,7 +93,7 @@ export default function CreatePropertyScreen() {
       allowsMultipleSelection: true,
       quality: 0.7,
       base64: true,
-      selectionLimit: 6,
+      selectionLimit: 6 - form.localImages.length,
     });
 
     if (result.canceled) return;
@@ -208,11 +208,11 @@ export default function CreatePropertyScreen() {
       type: form.type,
       bedrooms: form.bedrooms,
       bathrooms: form.bathrooms,
-      area_sqft: form.areaSqft ? Number(form.areaSqft) : null,
+      area_sqft: form.areaSqft && Number.isFinite(Number(form.areaSqft)) ? Number(form.areaSqft) : null,
       address: form.address.trim(),
       city: form.city.trim(),
-      latitude: form.latitude ? Number(form.latitude) : null,
-      longitude: form.longitude ? Number(form.longitude) : null,
+      latitude: form.latitude && Number.isFinite(Number(form.latitude)) ? Number(form.latitude) : null,
+      longitude: form.longitude && Number.isFinite(Number(form.longitude)) ? Number(form.longitude) : null,
       images: form.images,
       is_featured: form.isFeatured,
       is_sold: false,

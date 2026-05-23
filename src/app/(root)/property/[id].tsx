@@ -49,13 +49,21 @@ export default function PropertyDetailScreen() {
   }, [id]);
 
   const fetchProperty = async () => {
-    const { data } = await supabase
-      .from("properties")
-      .select("*")
-      .eq("id", id)
-      .single();
-    setProperty(data);
-    setLoading(false);
+    try {
+      const { data, error } = await supabase
+        .from("properties")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (error) {
+        console.error("Error fetching property:", error);
+      } else {
+        setProperty(data);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDelete = () => {

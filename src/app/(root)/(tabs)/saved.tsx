@@ -32,13 +32,17 @@ export default function SavedScreen() {
     const fetchSaved = useCallback(async () => {
         if (!userId) return;
         setLoading(true);
-        const { data } = await authSupabase
+        const { data, error } = await authSupabase
             .from("saved_properties")
             .select("id, property_id, properties(*)")
             .eq("user_clerk_id", userId)
             .order("id", { ascending: false });
 
-        setSaved((data as unknown as SavedProperty[]) ?? []);
+        if (error) {
+            console.error("Error fetching saved properties:", error);
+        } else {
+            setSaved((data as unknown as SavedProperty[]) ?? []);
+        }
         setLoading(false);
     }, [userId]);
 
