@@ -18,7 +18,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.rydewave"
+      "package": "com.cntbabul.rydewave"
     },
     "web": {
       "output": "static",
@@ -27,11 +27,17 @@
     "plugins": [
       "expo-router",
       [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow Ryde-Wave to access your location to show you nearby properties"
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#208AEF",
           "android": {
-            "image": "./assets/images/splash-icon.png",
+            "image": "./assets/images/kribb.png",
             "imageWidth": 76
           }
         }

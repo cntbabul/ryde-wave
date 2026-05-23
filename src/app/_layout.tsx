@@ -16,7 +16,7 @@ export default function RootLayout() {
     <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
       <ClerkLoaded>
         <StatusBar
-          barStyle='light-content'
+          barStyle='dark-content'
           backgroundColor='transparent'
           translucent={true}
           hidden={false}

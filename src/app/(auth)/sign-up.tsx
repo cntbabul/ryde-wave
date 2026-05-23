@@ -1,17 +1,19 @@
+import { useSignUp } from '@clerk/expo';
+import { Ionicons } from '@expo/vector-icons';
+import { Link, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  StyleSheet,
+  ActivityIndicator,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
 } from 'react-native';
-import { useSignUp } from '@clerk/expo';
-import { Link, useRouter } from 'expo-router';
 
 export default function SignUpScreen() {
   const { signUp } = useSignUp();
@@ -23,6 +25,7 @@ export default function SignUpScreen() {
   const [pendingVerification, setPendingVerification] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSignUp = async () => {
     if (!signUp) return;
@@ -77,7 +80,7 @@ export default function SignUpScreen() {
         if (finalizeError) {
           setError((finalizeError as any).errors?.[0]?.message || finalizeError.message || 'Failed to complete sign up.');
         } else {
-          router.replace('/(tabs)');
+          router.replace('/(root)/(tabs)');
         }
       } else {
         setError('Verification is incomplete. Please try again.');
@@ -93,14 +96,19 @@ export default function SignUpScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
+      className="flex-1 bg-slate-900"
     >
-      <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
-        <View style={styles.headerContainer}>
-          <Text style={styles.title}>
+      <ScrollView contentContainerClassName="flex-grow justify-center px-6 py-10" keyboardShouldPersistTaps="handled">
+        <View className="items-center mb-9">
+          <Image
+            source={require("@/assets/images/kribb.png")}
+            className="w-36 h-16 mb-8"
+            resizeMode="contain"
+          />
+          <Text className="text-3xl font-bold text-slate-50 mb-2 text-center">
             {pendingVerification ? 'Verify your email' : 'Create Account'}
           </Text>
-          <Text style={styles.subtitle}>
+          <Text className="text-[15px] text-slate-400 text-center leading-[22px]">
             {pendingVerification
               ? `We sent a 6-digit confirmation code to ${email}`
               : 'Join Ryde Wave and experience premium rides'}
@@ -108,17 +116,17 @@ export default function SignUpScreen() {
         </View>
 
         {error ? (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
+          <View className="bg-red-900 border border-red-400 rounded-xl p-[14px] mb-6">
+            <Text className="text-red-100 text-sm font-medium text-center">{error}</Text>
           </View>
         ) : null}
 
         {!pendingVerification ? (
-          <View style={styles.formContainer}>
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Email Address</Text>
+          <View className="w-full">
+            <View className="mb-5">
+              <Text className="text-sm font-semibold text-slate-200 mb-2">Email Address</Text>
               <TextInput
-                style={styles.input}
+                className="bg-slate-800 border border-slate-700 rounded-xl px-4 py-[14px] text-base text-slate-50"
                 placeholder="Enter your email"
                 placeholderTextColor="#94A3B8"
                 value={email}
@@ -129,47 +137,59 @@ export default function SignUpScreen() {
               />
             </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Password</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Choose a strong password"
-                placeholderTextColor="#94A3B8"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                autoCapitalize="none"
-                autoComplete="password"
-              />
+            <View className="mb-5">
+              <Text className="text-sm font-semibold text-slate-200 mb-2">Password</Text>
+              <View className="relative justify-center">
+                <TextInput
+                  className="bg-slate-800 border border-slate-700 rounded-xl pl-4 pr-12 py-[14px] text-base text-slate-50"
+                  placeholder="Choose a strong password"
+                  placeholderTextColor="#94A3B8"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                  autoComplete="password"
+                />
+                <Pressable
+                  className="absolute right-4"
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  <Ionicons
+                    name={showPassword ? 'eye-off' : 'eye'}
+                    size={24}
+                    color="#94A3B8"
+                  />
+                </Pressable>
+              </View>
             </View>
 
             <TouchableOpacity
-              style={styles.submitButton}
+              className="bg-[#0274DF] rounded-xl py-4 items-center mt-2.5 shadow-md shadow-[#0274DF]/30 elevation-4"
               onPress={handleSignUp}
               disabled={loading}
             >
               {loading ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
-                <Text style={styles.submitButtonText}>Create Account</Text>
+                <Text className="text-base font-bold text-white">Create Account</Text>
               )}
             </TouchableOpacity>
 
-            <View style={styles.footerContainer}>
-              <Text style={styles.footerText}>Already have an account? </Text>
+            <View className="flex-row justify-center items-center mt-7">
+              <Text className="text-sm text-slate-400">Already have an account? </Text>
               <Link href="/(auth)/sign-in" asChild>
                 <TouchableOpacity>
-                  <Text style={styles.signInLinkText}>Sign In</Text>
+                  <Text className="text-sm font-bold text-sky-400">Sign In</Text>
                 </TouchableOpacity>
               </Link>
             </View>
           </View>
         ) : (
-          <View style={styles.formContainer}>
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Verification Code</Text>
+          <View className="w-full">
+            <View className="mb-5">
+              <Text className="text-sm font-semibold text-slate-200 mb-2">Verification Code</Text>
               <TextInput
-                style={styles.input}
+                className="bg-slate-800 border border-slate-700 rounded-xl px-4 py-[14px] text-base text-slate-50"
                 placeholder="Enter 6-digit code"
                 placeholderTextColor="#94A3B8"
                 value={code}
@@ -181,23 +201,23 @@ export default function SignUpScreen() {
             </View>
 
             <TouchableOpacity
-              style={styles.submitButton}
+              className="bg-[#0274DF] rounded-xl py-4 items-center mt-2.5 shadow-md shadow-[#0274DF]/30 elevation-4"
               onPress={handleVerify}
               disabled={loading}
             >
               {loading ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
-                <Text style={styles.submitButtonText}>Verify Email</Text>
+                <Text className="text-base font-bold text-white">Verify Email</Text>
               )}
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.backButton}
+              className="py-4 items-center mt-3"
               onPress={() => setPendingVerification(false)}
               disabled={loading}
             >
-              <Text style={styles.backButtonText}>Back to Sign Up</Text>
+              <Text className="text-[15px] font-semibold text-slate-400">Back to Sign Up</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -206,110 +226,4 @@ export default function SignUpScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0F172A',
-  },
-  scrollContainer: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 40,
-  },
-  headerContainer: {
-    alignItems: 'center',
-    marginBottom: 36,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#F8FAFC',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 15,
-    color: '#94A3B8',
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  errorContainer: {
-    backgroundColor: '#7F1D1D',
-    borderWidth: 1,
-    borderColor: '#F87171',
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 24,
-  },
-  errorText: {
-    color: '#FEE2E2',
-    fontSize: 14,
-    fontWeight: '500',
-    textAlign: 'center',
-  },
-  formContainer: {
-    width: '100%',
-  },
-  inputGroup: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#E2E8F0',
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: '#1E293B',
-    borderWidth: 1,
-    borderColor: '#334155',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-    color: '#F8FAFC',
-  },
-  submitButton: {
-    backgroundColor: '#0274DF',
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
-    marginTop: 10,
-    shadowColor: '#0274DF',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  submitButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  backButton: {
-    paddingVertical: 16,
-    alignItems: 'center',
-    marginTop: 12,
-  },
-  backButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#94A3B8',
-  },
-  footerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 28,
-  },
-  footerText: {
-    fontSize: 14,
-    color: '#94A3B8',
-  },
-  signInLinkText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#38BDF8',
-  },
-});
+
